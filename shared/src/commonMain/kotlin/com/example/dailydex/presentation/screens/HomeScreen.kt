@@ -26,7 +26,8 @@ import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 
 @Composable
 fun HomeScreen(
-    onAddTaskClick: () -> Unit
+    onAddTaskClick: () -> Unit,
+    onEditTaskClick: (String, String, String) -> Unit
 ) {
 
     val viewModel = ViewModelProvider.homeViewModel
@@ -62,7 +63,12 @@ fun HomeScreen(
                 ) {
 
                     Text(
-                        text = "${tasks.size} tareas",
+                        text =
+                            if (tasks.size == 1)
+                                "1 tarea"
+                            else
+                                "${tasks.size} tareas",
+
                         style = MaterialTheme.typography.bodyMedium
                     )
 
@@ -83,7 +89,8 @@ fun HomeScreen(
                     ) {
 
                         Column(
-                            modifier = Modifier.padding(24.dp)
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
 
                             Text(
@@ -112,7 +119,6 @@ fun HomeScreen(
 
                     Column(
                         modifier = Modifier.padding(16.dp),
-
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
 
@@ -161,6 +167,19 @@ fun HomeScreen(
                                     else
                                         "Completar"
                                 )
+                            }
+
+                            Button(
+                                onClick = {
+
+                                    onEditTaskClick(
+                                        task.id,
+                                        task.title,
+                                        task.description
+                                    )
+                                }
+                            ) {
+                                Text("Editar")
                             }
 
                             Button(
