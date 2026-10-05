@@ -2,6 +2,7 @@ package com.example.dailydex.presentation.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,10 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
+
 @Composable
 fun CreateTaskScreen(
     onBack: () -> Unit
 ) {
+
     val viewModel = ViewModelProvider.homeViewModel
 
     var title by remember {
@@ -36,8 +39,13 @@ fun CreateTaskScreen(
     ) {
 
         Text(
-            text = "Nueva Tarea",
-            style = MaterialTheme.typography.headlineMedium
+            text = "Nueva tarea",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        Text(
+            text = "Añade una nueva actividad a tu lista",
+            style = MaterialTheme.typography.bodyMedium
         )
 
         OutlinedTextField(
@@ -45,6 +53,7 @@ fun CreateTaskScreen(
             onValueChange = {
                 title = it
             },
+            singleLine = true,
             label = {
                 Text("Título")
             },
@@ -56,38 +65,45 @@ fun CreateTaskScreen(
             onValueChange = {
                 description = it
             },
+            minLines = 2,
+            maxLines = 3,
             label = {
                 Text("Descripción")
             },
             modifier = Modifier.fillMaxWidth()
         )
 
-        Button(
-            onClick = {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
 
-                if (
-                    title.isNotBlank() &&
-                    description.isNotBlank()
-                ) {
+            Button(
+                onClick = {
 
-                    viewModel.addTask(
-                        title = title,
-                        description = description
-                    )
+                    if (
+                        title.isNotBlank() &&
+                        description.isNotBlank()
+                    ) {
+
+                        viewModel.addTask(
+                            title = title,
+                            description = description
+                        )
+
+                        onBack()
+                    }
                 }
-
-                onBack()
+            ) {
+                Text("💾 Guardar")
             }
-        ) {
-            Text("Guardar")
-        }
 
-        Button(
-            onClick = {
-                onBack()
+            Button(
+                onClick = {
+                    onBack()
+                }
+            ) {
+                Text("⬅ Volver")
             }
-        ) {
-            Text("Volver")
         }
     }
 }

@@ -12,17 +12,20 @@ class HomeViewModel {
                 Task(
                     id = "1",
                     title = "Estudiar Kotlin Multiplatform",
-                    description = "Avanzar con DailyDex"
+                    description = "Avanzar con DailyDex",
+                    createdAt = "2026-10-05"
                 ),
                 Task(
                     id = "2",
                     title = "Crear arquitectura",
-                    description = "Implementar MVVM"
+                    description = "Implementar MVVM",
+                    createdAt = "2026-10-05"
                 ),
                 Task(
                     id = "3",
                     title = "Entregar challenge",
-                    description = "Enviar APK y repositorio"
+                    description = "Enviar APK y repositorio",
+                    createdAt = "2026-10-05"
                 )
             )
         )
@@ -36,12 +39,14 @@ class HomeViewModel {
     ) {
 
         val newTask = Task(
-            id = ( (_uiState.value.tasks.maxOfOrNull {
+            id = (
+                    (_uiState.value.tasks.maxOfOrNull {
                         it.id.toIntOrNull() ?: 0
                     } ?: 0) + 1
                     ).toString(),
             title = title,
-            description = description
+            description = description,
+            createdAt = "2026-10-05"
         )
 
         _uiState.value = _uiState.value.copy(

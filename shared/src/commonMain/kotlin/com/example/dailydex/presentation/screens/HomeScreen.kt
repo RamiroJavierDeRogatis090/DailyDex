@@ -3,7 +3,9 @@ package com.example.dailydex.presentation.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 
@@ -54,10 +57,44 @@ fun HomeScreen(
 
             item {
 
-                Button(
-                    onClick = onAddTaskClick
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("➕ Nueva tarea")
+
+                    Text(
+                        text = "${tasks.size} tareas",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Button(
+                        onClick = onAddTaskClick
+                    ) {
+                        Text("➕ Nueva tarea")
+                    }
+                }
+            }
+
+            if (tasks.isEmpty()) {
+
+                item {
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+
+                        Column(
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+
+                            Text(
+                                text = "📋 No tienes tareas"
+                            )
+
+                            Text(
+                                text = "Presiona Nueva tarea para comenzar"
+                            )
+                        }
+                    }
                 }
             }
 
@@ -67,21 +104,20 @@ fun HomeScreen(
             ) { task ->
 
                 Card(
+                    modifier = Modifier.fillMaxWidth(),
                     elevation = CardDefaults.cardElevation(
                         defaultElevation = 6.dp
                     )
                 ) {
 
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
 
                         Text(
-                            text = if (task.completed)
-                                "✅ ${task.title}"
-                            else
-                                "⬜ ${task.title}",
-
+                            text = task.title,
                             style = MaterialTheme.typography.titleMedium
                         )
 
@@ -90,26 +126,50 @@ fun HomeScreen(
                             style = MaterialTheme.typography.bodyMedium
                         )
 
-                        Button(
-                            onClick = {
-                                viewModel.toggleTask(task.id)
-                            }
-                        ) {
+                        Text(
+                            text = "📅 ${task.createdAt}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
 
-                            Text(
+                        Text(
+                            text =
                                 if (task.completed)
-                                    "Desmarcar"
+                                    "✅ Completada"
                                 else
-                                    "Completar"
-                            )
-                        }
+                                    "⏳ Pendiente",
 
-                        Button(
-                            onClick = {
-                                viewModel.deleteTask(task.id)
-                            }
+                            color =
+                                if (task.completed)
+                                    Color(0xFF2E7D32)
+                                else
+                                    Color(0xFFE65100)
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Eliminar")
+
+                            Button(
+                                onClick = {
+                                    viewModel.toggleTask(task.id)
+                                }
+                            ) {
+
+                                Text(
+                                    if (task.completed)
+                                        "Desmarcar"
+                                    else
+                                        "Completar"
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    viewModel.deleteTask(task.id)
+                                }
+                            ) {
+                                Text("Eliminar")
+                            }
                         }
                     }
                 }
