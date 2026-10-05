@@ -29,4 +29,20 @@ class HomeViewModel {
     )
 
     val uiState = _uiState.asStateFlow()
+
+    fun addTask(
+        title: String,
+        description: String
+    ) {
+
+        val newTask = Task(
+            id = (_uiState.value.tasks.size + 1).toString(),
+            title = title,
+            description = description
+        )
+
+        _uiState.value = _uiState.value.copy(
+            tasks = _uiState.value.tasks + newTask
+        )
+    }
 }

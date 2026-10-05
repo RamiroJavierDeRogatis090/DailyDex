@@ -12,11 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
+import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 @Composable
 fun CreateTaskScreen(
     onBack: () -> Unit
 ) {
+    val viewModel = ViewModelProvider.homeViewModel
 
     var title by remember {
         mutableStateOf("")
@@ -63,6 +64,18 @@ fun CreateTaskScreen(
 
         Button(
             onClick = {
+
+                if (
+                    title.isNotBlank() &&
+                    description.isNotBlank()
+                ) {
+
+                    viewModel.addTask(
+                        title = title,
+                        description = description
+                    )
+                }
+
                 onBack()
             }
         ) {
