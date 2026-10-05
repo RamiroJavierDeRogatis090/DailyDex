@@ -15,12 +15,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-//import com.example.dailydex.presentation.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(
@@ -28,8 +27,11 @@ fun HomeScreen(
 ) {
 
     val viewModel = ViewModelProvider.homeViewModel
+
     val uiState by viewModel.uiState.collectAsState()
+
     val tasks = uiState.tasks
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -59,7 +61,10 @@ fun HomeScreen(
                 }
             }
 
-            items(tasks) { task ->
+            items(
+                items = tasks,
+                key = { it.id }
+            ) { task ->
 
                 Card(
                     elevation = CardDefaults.cardElevation(
@@ -72,7 +77,11 @@ fun HomeScreen(
                     ) {
 
                         Text(
-                            text = task.title,
+                            text = if (task.completed)
+                                "✅ ${task.title}"
+                            else
+                                "⬜ ${task.title}",
+
                             style = MaterialTheme.typography.titleMedium
                         )
 
@@ -80,6 +89,28 @@ fun HomeScreen(
                             text = task.description,
                             style = MaterialTheme.typography.bodyMedium
                         )
+
+                        Button(
+                            onClick = {
+                                viewModel.toggleTask(task.id)
+                            }
+                        ) {
+
+                            Text(
+                                if (task.completed)
+                                    "Desmarcar"
+                                else
+                                    "Completar"
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.deleteTask(task.id)
+                            }
+                        ) {
+                            Text("Eliminar")
+                        }
                     }
                 }
             }

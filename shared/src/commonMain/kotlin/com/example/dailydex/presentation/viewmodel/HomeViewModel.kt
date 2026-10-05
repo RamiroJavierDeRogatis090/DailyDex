@@ -36,13 +36,62 @@ class HomeViewModel {
     ) {
 
         val newTask = Task(
-            id = (_uiState.value.tasks.size + 1).toString(),
+            id = ( (_uiState.value.tasks.maxOfOrNull {
+                        it.id.toIntOrNull() ?: 0
+                    } ?: 0) + 1
+                    ).toString(),
             title = title,
             description = description
         )
 
         _uiState.value = _uiState.value.copy(
             tasks = _uiState.value.tasks + newTask
+        )
+    }
+
+    fun updateTask(
+        id: String,
+        title: String,
+        description: String
+    ) {
+
+        _uiState.value = _uiState.value.copy(
+            tasks = _uiState.value.tasks.map { task ->
+
+                if (task.id == id) {
+                    task.copy(
+                        title = title,
+                        description = description
+                    )
+                } else {
+                    task
+                }
+            }
+        )
+    }
+
+    fun deleteTask(id: String) {
+
+        _uiState.value = _uiState.value.copy(
+            tasks = _uiState.value.tasks.filter {
+                it.id != id
+            }
+        )
+    }
+
+    fun toggleTask(id: String) {
+
+        _uiState.value = _uiState.value.copy(
+            tasks = _uiState.value.tasks.map { task ->
+
+                if (task.id == id) {
+                    task.copy(
+                        completed = !task.completed
+                    )
+                } else {
+                    task
+                }
+            }
         )
     }
 }
