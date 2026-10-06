@@ -1,10 +1,13 @@
 package com.example.dailydex.presentation.viewmodel
 
+import com.example.dailydex.data.supabase.SupabaseTaskRepository
 import com.example.dailydex.domain.model.Task
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class HomeViewModel {
+
+    private val repository = SupabaseTaskRepository()
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
@@ -98,5 +101,13 @@ class HomeViewModel {
                 }
             }
         )
+    }
+
+    suspend fun testSupabase() {
+
+        val result = repository.getTasks()
+
+        println("SUPABASE RESPONSE:")
+        println(result)
     }
 }
