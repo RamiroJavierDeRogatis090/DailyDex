@@ -6,9 +6,16 @@ import com.example.dailydex.presentation.navigation.Routes
 import com.example.dailydex.presentation.screens.CreateTaskScreen
 import com.example.dailydex.presentation.screens.EditTaskScreen
 import com.example.dailydex.presentation.screens.HomeScreen
+import androidx.compose.runtime.LaunchedEffect
+import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 
 @Composable
 fun App() {
+    val viewModel = ViewModelProvider.homeViewModel
+
+    LaunchedEffect(Unit) {
+        viewModel.testSupabase()
+    }
 
     var currentScreen by remember {
         mutableStateOf<Routes>(Routes.Home)

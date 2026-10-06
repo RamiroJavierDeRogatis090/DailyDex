@@ -12,6 +12,9 @@ class SupabaseTaskRepository {
 
     suspend fun getTasks(): String {
 
+        println("URL:")
+        println("${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks")
+
         return client.get(
             "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks"
         ) {
@@ -27,4 +30,5 @@ class SupabaseTaskRepository {
             )
         }.bodyAsText()
     }
-}
+
+    }

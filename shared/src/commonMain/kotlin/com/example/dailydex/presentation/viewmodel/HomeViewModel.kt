@@ -105,9 +105,26 @@ class HomeViewModel {
 
     suspend fun testSupabase() {
 
-        val result = repository.getTasks()
+        try {
 
-        println("SUPABASE RESPONSE:")
-        println(result)
+            println("===================================")
+            println("ANTES DEL GET")
+
+            val result = repository.getTasks()
+
+            println("SUPABASE RESPONSE:")
+            println(result)
+            println("LARGO RESPUESTA = ${result.length}")
+
+            println("===================================")
+
+        } catch (e: Exception) {
+
+            println("===================================")
+            println("SUPABASE ERROR:")
+            println(e.toString())
+            println("===================================")
+        }
+
     }
-}
+    }
