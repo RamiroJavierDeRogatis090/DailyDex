@@ -14,7 +14,7 @@ fun App() {
     val viewModel = ViewModelProvider.homeViewModel
 
     LaunchedEffect(Unit) {
-        viewModel.testSupabase()
+        viewModel.loadTasksFromSupabase()
     }
 
     var currentScreen by remember {

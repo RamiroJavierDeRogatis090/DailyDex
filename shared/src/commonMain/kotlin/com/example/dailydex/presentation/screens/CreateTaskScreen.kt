@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
+import kotlinx.coroutines.launch
 
 @Composable
 fun CreateTaskScreen(
@@ -21,6 +22,8 @@ fun CreateTaskScreen(
 ) {
 
     val viewModel = ViewModelProvider.homeViewModel
+
+    val scope = rememberCoroutineScope()
 
     var title by remember {
         mutableStateOf("")
@@ -85,12 +88,15 @@ fun CreateTaskScreen(
                         description.isNotBlank()
                     ) {
 
-                        viewModel.addTask(
-                            title = title,
-                            description = description
-                        )
+                        scope.launch {
 
-                        onBack()
+                            viewModel.addTaskToSupabase(
+                                title = title,
+                                description = description
+                            )
+
+                            onBack()
+                        }
                     }
                 }
             ) {
