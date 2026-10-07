@@ -1,36 +1,43 @@
 package com.example.dailydex.data.supabase
 
+import com.example.dailydex.data.auth.AuthManager
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import io.ktor.client.request.patch
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class SupabaseTaskRepository {
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
     private val client = HttpClient {
 
         expectSuccess = true
 
         install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                    encodeDefaults = true
-                }
-            )
+            json(json)
         }
     }
+
+    private fun authHeader(): String =
+        "Bearer ${AuthManager.accessToken ?: SupabaseConfig.SUPABASE_KEY}"
 
     suspend fun getTasks(): List<TaskDto> {
 
@@ -38,18 +45,12 @@ class SupabaseTaskRepository {
             "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks"
         ) {
 
-            header(
-                "apikey",
-                SupabaseConfig.SUPABASE_KEY
-            )
+            header("apikey", SupabaseConfig.SUPABASE_KEY)
+            header("Authorization", authHeader())
 
-            header(
-                "Authorization",
-                "Bearer ${SupabaseConfig.SUPABASE_KEY}"
-            )
         }.bodyAsText()
 
-        return Json.decodeFromString(
+        return json.decodeFromString(
             ListSerializer(TaskDto.serializer()),
             response
         )
@@ -66,28 +67,22 @@ class SupabaseTaskRepository {
             completed = false
         )
 
-        client.post(
-            "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks"
-        ) {
+        try {
 
-            header(
-                "apikey",
-                SupabaseConfig.SUPABASE_KEY
-            )
+            client.post(
+                "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks"
+            ) {
 
-            header(
-                "Authorization",
-                "Bearer ${SupabaseConfig.SUPABASE_KEY}"
-            )
+                header("apikey", SupabaseConfig.SUPABASE_KEY)
+                header("Authorization", authHeader())
+                header("Prefer", "return=minimal")
+                contentType(ContentType.Application.Json)
+                setBody(task)
+            }
 
-            header(
-                "Prefer",
-                "return=minimal"
-            )
+        } catch (e: ResponseException) {
 
-            contentType(ContentType.Application.Json)
-
-            setBody(task)
+            throw IllegalStateException(e.readError(), e)
         }
     }
 
@@ -95,19 +90,19 @@ class SupabaseTaskRepository {
         id: String
     ) {
 
-        client.delete(
-            "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks?id=eq.$id"
-        ) {
+        try {
 
-            header(
-                "apikey",
-                SupabaseConfig.SUPABASE_KEY
-            )
+            client.delete(
+                "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks?id=eq.$id"
+            ) {
 
-            header(
-                "Authorization",
-                "Bearer ${SupabaseConfig.SUPABASE_KEY}"
-            )
+                header("apikey", SupabaseConfig.SUPABASE_KEY)
+                header("Authorization", authHeader())
+            }
+
+        } catch (e: ResponseException) {
+
+            throw IllegalStateException(e.readError(), e)
         }
     }
 
@@ -130,47 +125,47 @@ class SupabaseTaskRepository {
                 "${SupabaseConfig.SUPABASE_URL}/rest/v1/tasks?id=eq.$id"
             ) {
 
-                header(
-                    "apikey",
-                    SupabaseConfig.SUPABASE_KEY
-                )
-
-                header(
-                    "Authorization",
-                    "Bearer ${SupabaseConfig.SUPABASE_KEY}"
-                )
-
-                header(
-                    "Prefer",
-                    "return=representation"
-                )
-
+                header("apikey", SupabaseConfig.SUPABASE_KEY)
+                header("Authorization", authHeader())
+                header("Prefer", "return=representation")
                 contentType(ContentType.Application.Json)
-
                 setBody(task)
             }
 
         } catch (e: ResponseException) {
 
-            val errorBody = e.response.bodyAsText()
-
-            throw IllegalStateException(
-                "Supabase respondió ${e.response.status.value} al actualizar id=$id. $errorBody",
-                e
-            )
+            throw IllegalStateException(e.readError(), e)
         }
 
         val body = response.bodyAsText()
 
-        println("UPDATE RESPONSE status=${response.status.value} id=$id body=$body")
-
         if (body.isBlank() || body.trim() == "[]") {
 
             throw IllegalStateException(
-                "Supabase no actualizó ninguna fila (id=$id). " +
-                    "¿La tarea todavía existe? Body=$body"
+                "Supabase no actualizó ninguna fila (id=$id)."
             )
         }
     }
 
+    private suspend fun ResponseException.readError(): String {
+
+        val body = try {
+            response.bodyAsText()
+        } catch (_: Exception) {
+            ""
+        }
+
+        val message = try {
+            json.parseToJsonElement(body)
+                .jsonObject["message"]
+                ?.jsonPrimitive
+                ?.content
+        } catch (_: Exception) {
+            null
+        }
+
+        return message
+            ?.takeIf { it.isNotBlank() }
+            ?: "Supabase respondió ${response.status.value}"
+    }
 }

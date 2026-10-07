@@ -21,10 +21,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +40,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.domain.model.Task
+import com.example.dailydex.presentation.components.DailyDexLogo
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 import kotlinx.coroutines.launch
 
@@ -44,7 +48,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     onAddTaskClick: () -> Unit,
-    onEditTaskClick: (String, String, String) -> Unit
+    onEditTaskClick: (String, String, String) -> Unit,
+    onSignOut: () -> Unit
 ) {
 
     val viewModel = ViewModelProvider.homeViewModel
@@ -55,15 +60,38 @@ fun HomeScreen(
 
     val tasks = uiState.tasks
 
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+
+    LaunchedEffect(uiState.errorMessage) {
+
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     var taskToDelete by remember {
         mutableStateOf<String?>(null)
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        },
         topBar = {
             TopAppBar(
                 title = {
-                    Text("DailyDex")
+                    DailyDexLogo(
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
+                actions = {
+                    TextButton(
+                        onClick = onSignOut
+                    ) {
+                        Text("Salir")
+                    }
                 }
             )
         },
@@ -148,17 +176,6 @@ fun HomeScreen(
                         )
                     }
 
-                    uiState.errorMessage?.let { message ->
-
-                        item {
-                            Text(
-                                text = message,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-
                     items(
                         items = tasks,
                         key = { it.id }
@@ -168,7 +185,10 @@ fun HomeScreen(
                             task = task,
                             onToggle = {
                                 scope.launch {
-                                    viewModel.toggleTaskInSupabase(task.id)
+                                    val error = viewModel.toggleTaskInSupabase(task.id)
+                                    if (error != null) {
+                                        snackbarHostState.showSnackbar(error)
+                                    }
                                 }
                             },
                             onEdit = {
@@ -205,7 +225,10 @@ fun HomeScreen(
                     onClick = {
                         taskToDelete = null
                         scope.launch {
-                            viewModel.deleteTaskFromSupabase(id)
+                            val error = viewModel.deleteTaskFromSupabase(id)
+                            if (error != null) {
+                                snackbarHostState.showSnackbar(error)
+                            }
                         }
                     }
                 ) {

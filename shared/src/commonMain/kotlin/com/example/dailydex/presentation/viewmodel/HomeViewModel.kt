@@ -87,27 +87,45 @@ class HomeViewModel {
         )
     }
 
-    suspend fun toggleTaskInSupabase(id: String) {
+    suspend fun toggleTaskInSupabase(id: String): String? {
 
         val task = _uiState.value.tasks
             .firstOrNull { it.id == id }
-            ?: return
+            ?: return null
 
-        try {
+        val toggled = task.copy(completed = !task.completed)
+
+        _uiState.value = _uiState.value.copy(
+            tasks = _uiState.value.tasks.map {
+                if (it.id == id) toggled else it
+            }
+        )
+
+        return try {
 
             repository.updateTask(
                 id = id,
-                title = task.title,
-                description = task.description,
-                completed = !task.completed
+                title = toggled.title,
+                description = toggled.description,
+                completed = toggled.completed
             )
+
+            loadTasksFromSupabase()
+
+            null
 
         } catch (e: Exception) {
 
-            println("TOGGLE TASK ERROR -> ${e.message}")
-        }
+            _uiState.value = _uiState.value.copy(
+                tasks = _uiState.value.tasks.map {
+                    if (it.id == id) task else it
+                }
+            )
 
-        loadTasksFromSupabase()
+            println("TOGGLE TASK ERROR -> ${e.message}")
+
+            e.message ?: "No se pudo actualizar la tarea."
+        }
     }
 
     suspend fun loadTasksFromSupabase() {
@@ -144,23 +162,55 @@ class HomeViewModel {
     suspend fun addTaskToSupabase(
         title: String,
         description: String
-    ) {
+    ): String? {
 
-        repository.insertTask(
-            title = title,
-            description = description
-        )
+        return try {
 
-        loadTasksFromSupabase()
+            repository.insertTask(
+                title = title,
+                description = description
+            )
+
+            loadTasksFromSupabase()
+
+            null
+
+        } catch (e: Exception) {
+
+            println("ADD TASK ERROR -> ${e.message}")
+
+            e.message ?: "No se pudo guardar la tarea."
+        }
     }
 
     suspend fun deleteTaskFromSupabase(
         id: String
-    ) {
+    ): String? {
 
-        repository.deleteTask(id)
+        val previous = _uiState.value.tasks
 
-        loadTasksFromSupabase()
+        _uiState.value = _uiState.value.copy(
+            tasks = previous.filterNot { it.id == id }
+        )
+
+        return try {
+
+            repository.deleteTask(id)
+
+            loadTasksFromSupabase()
+
+            null
+
+        } catch (e: Exception) {
+
+            _uiState.value = _uiState.value.copy(
+                tasks = previous
+            )
+
+            println("DELETE TASK ERROR -> ${e.message}")
+
+            e.message ?: "No se pudo eliminar la tarea."
+        }
     }
 
     suspend fun updateTaskInSupabase(

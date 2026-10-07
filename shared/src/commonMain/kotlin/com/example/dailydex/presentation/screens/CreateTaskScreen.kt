@@ -47,6 +47,10 @@ fun CreateTaskScreen(
         mutableStateOf("")
     }
 
+    var error by remember {
+        mutableStateOf<String?>(null)
+    }
+
     var isSaving by remember {
         mutableStateOf(false)
     }
@@ -110,6 +114,15 @@ fun CreateTaskScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            error?.let {
+
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             Row(
@@ -131,15 +144,20 @@ fun CreateTaskScreen(
                         scope.launch {
 
                             isSaving = true
+                            error = null
 
-                            viewModel.addTaskToSupabase(
+                            val errorMessage = viewModel.addTaskToSupabase(
                                 title = title.trim(),
                                 description = description.trim()
                             )
 
                             isSaving = false
 
-                            onBack()
+                            if (errorMessage == null) {
+                                onBack()
+                            } else {
+                                error = "No se pudo guardar: $errorMessage"
+                            }
                         }
                     },
                     modifier = Modifier.weight(1f),
