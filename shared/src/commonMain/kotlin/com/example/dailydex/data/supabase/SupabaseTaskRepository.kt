@@ -26,6 +26,7 @@ class SupabaseTaskRepository {
             json(
                 Json {
                     ignoreUnknownKeys = true
+                    encodeDefaults = true
                 }
             )
         }
