@@ -1,5 +1,12 @@
 package com.example.dailydex
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -81,55 +88,88 @@ fun App() {
 
             else -> {
 
-                when (currentScreen) {
+                AnimatedContent(
+                    targetState = currentScreen,
+                    modifier = Modifier.fillMaxSize(),
+                    transitionSpec = {
 
-                    Routes.Home -> {
+                        val goingForward =
+                            targetState.depth > initialState.depth
 
-                        HomeScreen(
-                            onAddTaskClick = {
-                                currentScreen = Routes.CreateTask
-                            },
+                        if (goingForward) {
 
-                            onEditTaskClick = { id, title, description ->
+                            (slideInHorizontally(animationSpec = tween(350)) { it } +
+                                fadeIn(animationSpec = tween(350))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(350)) { -it / 3 } +
+                                    fadeOut(animationSpec = tween(250)))
 
-                                taskId = id
-                                taskTitle = title
-                                taskDescription = description
+                        } else {
 
-                                currentScreen = Routes.EditTask
-                            },
+                            (slideInHorizontally(animationSpec = tween(350)) { -it } +
+                                fadeIn(animationSpec = tween(350))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(350)) { it / 3 } +
+                                    fadeOut(animationSpec = tween(250)))
+                        }
+                    },
+                    label = "screenTransition"
+                ) { screen ->
 
-                            onSignOut = {
+                    when (screen) {
 
-                                appScope.launch {
-                                    authViewModel.signOut()
+                        Routes.Home -> {
+
+                            HomeScreen(
+                                onAddTaskClick = {
+                                    currentScreen = Routes.CreateTask
+                                },
+
+                                onEditTaskClick = { id, title, description ->
+
+                                    taskId = id
+                                    taskTitle = title
+                                    taskDescription = description
+
+                                    currentScreen = Routes.EditTask
+                                },
+
+                                onSignOut = {
+
+                                    appScope.launch {
+                                        authViewModel.signOut()
+                                    }
                                 }
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    Routes.CreateTask -> {
+                        Routes.CreateTask -> {
 
-                        CreateTaskScreen(
-                            onBack = {
-                                currentScreen = Routes.Home
-                            }
-                        )
-                    }
+                            CreateTaskScreen(
+                                onBack = {
+                                    currentScreen = Routes.Home
+                                }
+                            )
+                        }
 
-                    Routes.EditTask -> {
+                        Routes.EditTask -> {
 
-                        EditTaskScreen(
-                            taskId = taskId,
-                            currentTitle = taskTitle,
-                            currentDescription = taskDescription,
-                            onBack = {
-                                currentScreen = Routes.Home
-                            }
-                        )
+                            EditTaskScreen(
+                                taskId = taskId,
+                                currentTitle = taskTitle,
+                                currentDescription = taskDescription,
+                                onBack = {
+                                    currentScreen = Routes.Home
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+
+private val Routes.depth: Int
+    get() = when (this) {
+        Routes.Home -> 0
+        Routes.CreateTask, Routes.EditTask -> 1
+    }

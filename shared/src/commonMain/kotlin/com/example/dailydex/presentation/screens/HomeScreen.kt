@@ -183,6 +183,7 @@ fun HomeScreen(
 
                         TaskCard(
                             task = task,
+                            modifier = Modifier.animateItem(),
                             onToggle = {
                                 scope.launch {
                                     val error = viewModel.toggleTaskInSupabase(task.id)
@@ -288,13 +289,14 @@ private fun SummaryCard(
 @Composable
 private fun TaskCard(
     task: Task,
+    modifier: Modifier = Modifier,
     onToggle: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
 
         Row(
