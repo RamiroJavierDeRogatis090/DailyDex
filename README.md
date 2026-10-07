@@ -1,31 +1,50 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# DailyDex
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+App de tareas hecha con **Kotlin Multiplatform + Compose Multiplatform** (Android e iOS con el mismo código) y backend en **Supabase**.
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## Capturas
 
-### Running the apps
+| Home | Nueva tarea |
+|:---:|:---:|
+| ![Home](./screenshots/home.jpeg) | ![Nueva tarea](./screenshots/nuevaTarea.jpeg) |
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+| Editar tarea | Login |
+|:---:|:---:|
+| ![Editar tarea](./screenshots/editarTarea.jpeg) | ![Login](./screenshots/Login.jpeg) |
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+## ¿Qué usé y por qué?
 
-### Running tests
+- **Compose Multiplatform:** una sola base de código para Android e iOS. No tenía sentido hacer dos apps y mantener dos veces lo mismo.
+- **Navegación a mano** (`Routes` + un `when` en `App.kt`): son 3 pantallas, no hace falta una librería entera para eso. A cambio, tuve que resolver yo el botón atrás y las transiciones.
+- **Transiciones con `AnimatedContent`:** slide + fade. Como va en `commonMain`, se ve igual en Android e iOS (los XML de animación solo sirven en Android).
+- **Botón atrás del sistema:** con `BackHandler`, para que no cierre la app cuando estoy en Crear o Editar.
+- **Supabase con Ktor directo al REST:** preferí manejar yo los headers y las respuestas en vez de usar el SDK oficial. Menos magia, más control (aunque más código).
+- **Estado con ViewModel + StateFlow** y sin framework de DI: para esta app no hacía falta. Si crece, ahí sí convendría Koin o Hilt.
+- **La lista se recarga después de cada operación:** simple y siempre sync con el servidor, sin estados fantasma.
+- **Material 3 con tema propio:** consistencia y accesibilidad sin inventar componentes.
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+### Un par de gotchas
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+- El `bottomBar` del `Scaffold` de Material 3 **no** aplica los insets de la barra de navegación, así que hay que pedirlos a mano (`windowInsetsPadding(WindowInsets.navigationBars)`) o los botones quedan tapados.
+- Con `enableEdgeToEdge()`, cada pantalla es responsable de su propio padding.
 
----
+## Estructura
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+```
+androidApp/   → entry point Android
+iosApp/       → entry point iOS
+shared/src/
+  commonMain/ → UI + lógica compartida (data, domain, presentation)
+  androidMain/ iosMain/ → cosas específicas de cada plataforma
+screenshots/  → capturas
+```
+
+## Correr las apps
+
+- Android: `./gradlew :androidApp:assembleDebug`
+- iOS: abrir [/iosApp](./iosApp) en Xcode y ejecutar.
+
+## Tests
+
+- Android: `./gradlew :shared:testAndroidHostTest`
+- iOS: `./gradlew :shared:iosSimulatorArm64Test`
