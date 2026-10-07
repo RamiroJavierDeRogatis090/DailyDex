@@ -19,10 +19,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -31,6 +33,8 @@ fun HomeScreen(
 ) {
 
     val viewModel = ViewModelProvider.homeViewModel
+
+    val scope = rememberCoroutineScope()
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -157,10 +161,15 @@ fun HomeScreen(
 
                             Button(
                                 onClick = {
-                                    viewModel.toggleTask(task.id)
+
+                                    scope.launch {
+
+                                        viewModel.toggleTaskInSupabase(
+                                            task.id
+                                        )
+                                    }
                                 }
                             ) {
-
                                 Text(
                                     if (task.completed)
                                         "Desmarcar"
@@ -184,7 +193,13 @@ fun HomeScreen(
 
                             Button(
                                 onClick = {
-                                    viewModel.deleteTask(task.id)
+
+                                    scope.launch {
+
+                                        viewModel.deleteTaskFromSupabase(
+                                            task.id
+                                        )
+                                    }
                                 }
                             ) {
                                 Text("Eliminar")

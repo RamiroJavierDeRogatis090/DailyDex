@@ -87,6 +87,29 @@ class HomeViewModel {
         )
     }
 
+    suspend fun toggleTaskInSupabase(id: String) {
+
+        val task = _uiState.value.tasks
+            .firstOrNull { it.id == id }
+            ?: return
+
+        try {
+
+            repository.updateTask(
+                id = id,
+                title = task.title,
+                description = task.description,
+                completed = !task.completed
+            )
+
+        } catch (e: Exception) {
+
+            println("TOGGLE TASK ERROR -> ${e.message}")
+        }
+
+        loadTasksFromSupabase()
+    }
+
     suspend fun loadTasksFromSupabase() {
 
         try {
@@ -126,6 +149,47 @@ class HomeViewModel {
         )
 
         loadTasksFromSupabase()
+    }
+
+    suspend fun deleteTaskFromSupabase(
+        id: String
+    ) {
+
+        repository.deleteTask(id)
+
+        loadTasksFromSupabase()
+    }
+
+    suspend fun updateTaskInSupabase(
+        id: String,
+        title: String,
+        description: String
+    ): String? {
+
+        return try {
+
+            val completed = _uiState.value.tasks
+                .firstOrNull { it.id == id }
+                ?.completed
+                ?: false
+
+            repository.updateTask(
+                id = id,
+                title = title,
+                description = description,
+                completed = completed
+            )
+
+            loadTasksFromSupabase()
+
+            null
+
+        } catch (e: Exception) {
+
+            println("UPDATE TASK ERROR -> ${e.message}")
+
+            e.message ?: e.toString()
+        }
     }
 
 }

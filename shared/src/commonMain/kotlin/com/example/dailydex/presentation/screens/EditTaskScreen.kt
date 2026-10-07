@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditTaskScreen(
@@ -25,12 +26,18 @@ fun EditTaskScreen(
 
     val viewModel = ViewModelProvider.homeViewModel
 
+    val scope = rememberCoroutineScope()
+
     var title by remember {
         mutableStateOf(currentTitle)
     }
 
     var description by remember {
         mutableStateOf(currentDescription)
+    }
+
+    var error by remember {
+        mutableStateOf<String?>(null)
     }
 
     Column(
@@ -68,6 +75,14 @@ fun EditTaskScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        error?.let {
+
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -75,13 +90,20 @@ fun EditTaskScreen(
             Button(
                 onClick = {
 
-                    viewModel.updateTask(
-                        id = taskId,
-                        title = title,
-                        description = description
-                    )
+                    scope.launch {
 
-                    onBack()
+                        val errorMessage = viewModel.updateTaskInSupabase(
+                            id = taskId,
+                            title = title,
+                            description = description
+                        )
+
+                        if (errorMessage == null) {
+                            onBack()
+                        } else {
+                            error = "No se pudo guardar: $errorMessage"
+                        }
+                    }
                 }
             ) {
                 Text("💾 Guardar")
