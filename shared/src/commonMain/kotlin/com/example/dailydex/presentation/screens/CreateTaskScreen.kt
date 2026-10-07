@@ -3,19 +3,33 @@ package com.example.dailydex.presentation.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskScreen(
     onBack: () -> Unit
@@ -33,82 +47,115 @@ fun CreateTaskScreen(
         mutableStateOf("")
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+    var isSaving by remember {
+        mutableStateOf(false)
+    }
 
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Nueva tarea")
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = onBack
+                    ) {
+                        Text(
+                            text = "⬅",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
 
-        Text(
-            text = "Nueva tarea",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        Text(
-            text = "Añade una nueva actividad a tu lista",
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        OutlinedTextField(
-            value = title,
-            onValueChange = {
-                title = it
-            },
-            singleLine = true,
-            label = {
-                Text("Título")
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = {
-                description = it
-            },
-            minLines = 2,
-            maxLines = 3,
-            label = {
-                Text("Descripción")
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            Button(
-                onClick = {
+            Text(
+                text = "Añadí una nueva actividad a tu lista",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
-                    if (
-                        title.isNotBlank() &&
-                        description.isNotBlank()
-                    ) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = {
+                    title = it
+                },
+                singleLine = true,
+                label = {
+                    Text("Título")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = {
+                    description = it
+                },
+                minLines = 3,
+                maxLines = 6,
+                label = {
+                    Text("Descripción (opcional)")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSaving
+                ) {
+                    Text("Cancelar")
+                }
+
+                Button(
+                    onClick = {
 
                         scope.launch {
 
+                            isSaving = true
+
                             viewModel.addTaskToSupabase(
-                                title = title,
-                                description = description
+                                title = title.trim(),
+                                description = description.trim()
                             )
+
+                            isSaving = false
 
                             onBack()
                         }
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = title.isNotBlank() && !isSaving
+                ) {
+                    if (isSaving) {
+
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+
+                        Text("Guardar")
                     }
                 }
-            ) {
-                Text("💾 Guardar")
-            }
-
-            Button(
-                onClick = {
-                    onBack()
-                }
-            ) {
-                Text("⬅ Volver")
             }
         }
     }

@@ -112,6 +112,11 @@ class HomeViewModel {
 
     suspend fun loadTasksFromSupabase() {
 
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            errorMessage = null
+        )
+
         try {
 
             val tasks = repository
@@ -121,20 +126,18 @@ class HomeViewModel {
                 }
 
             _uiState.value = _uiState.value.copy(
-                tasks = tasks
+                tasks = tasks,
+                isLoading = false
             )
-
-            println("===================================")
-            println("TAREAS CARGADAS DESDE SUPABASE")
-            println(tasks.size)
-            println("===================================")
 
         } catch (e: Exception) {
 
-            println("===================================")
-            println("LOAD TASKS ERROR")
-            println(e.toString())
-            println("===================================")
+            println("LOAD TASKS ERROR -> ${e.message}")
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = "No se pudieron cargar las tareas. Revisá tu conexión."
+            )
         }
     }
 

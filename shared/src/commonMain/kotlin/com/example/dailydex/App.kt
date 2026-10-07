@@ -1,12 +1,12 @@
 package com.example.dailydex
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import com.example.dailydex.presentation.navigation.Routes
 import com.example.dailydex.presentation.screens.CreateTaskScreen
 import com.example.dailydex.presentation.screens.EditTaskScreen
 import com.example.dailydex.presentation.screens.HomeScreen
 import androidx.compose.runtime.LaunchedEffect
+import com.example.dailydex.presentation.theme.DailyDexTheme
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 
 @Composable
@@ -33,7 +33,7 @@ fun App() {
         mutableStateOf("")
     }
 
-    MaterialTheme {
+    DailyDexTheme {
 
         when (currentScreen) {
 
