@@ -19,7 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import com.example.dailydex.presentation.navigation.Routes
 import com.example.dailydex.presentation.screens.CreateTaskScreen
 import com.example.dailydex.presentation.screens.EditTaskScreen
@@ -29,6 +31,7 @@ import com.example.dailydex.presentation.theme.DailyDexTheme
 import com.example.dailydex.presentation.viewmodel.ViewModelProvider
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App() {
 
@@ -87,6 +90,10 @@ fun App() {
             }
 
             else -> {
+
+                BackHandler(enabled = currentScreen != Routes.Home) {
+                    currentScreen = Routes.Home
+                }
 
                 AnimatedContent(
                     targetState = currentScreen,
